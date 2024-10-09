@@ -5,7 +5,7 @@ This program will use tkinter to create a GUI program that does simple calculati
 
 ### Phase 1 (Started October 8 2024)
 1. TKinter GUI interface will be created in this phase to create a calculator. (Completed Oct 8 2024)
-2. Interface is customized to look prettier
+2. Interface is customized to look prettier (Completed Oct 9 2024)
 
-### Phase 2
+### Phase 2 (Started October 9 2024)
 1. Actual calculator functionality implemented
