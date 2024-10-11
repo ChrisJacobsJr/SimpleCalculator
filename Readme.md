@@ -9,6 +9,11 @@ This program will use tkinter to create a GUI program that does simple calculati
 
 ### Phase 2 (Started October 9 2024)
 1. Actual calculator functionality implemented
-    - map buttons to a "command" function that will do different things based on the button pressed
-    - implement a buffer that holds a value. The buffer is acted upon by the button functions
-    - update the display of the calculator every time the buffer value is changed.
+    - map buttons to a "command" function that will delegate to other functions based on the button pressed (Started Oct 9 2024)
+        - operations where the operator buttons are used once (Completed Oct 10 2024)
+        - operations where the operator buttons are used multiple times
+        - clear screen function (Completed Oct 10 2024)
+        - decimal function (Completed Oct 10 2024)
+        - add-to-screen function (Completed Oct 10 2024)
+    - implement a buffer that holds a value. The buffer is acted upon by the button functions (Completed Oct 10 2024)
+    - update the display of the calculator every time the buffer value is changed. (Completed Oct 10 2024)

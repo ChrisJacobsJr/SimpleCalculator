@@ -1,5 +1,23 @@
 import tkinter as tk
 from tkinter import ttk
+from enum import Enum
+
+# Glboal var to store the value to be displayed on the calculator
+display_value = "0"
+
+# display_value is stored here when the user presses an operation button (+, -, *, /)
+stored_value = ""
+
+# Enum class to determine if the calculator is adding, subtracting, multiplying, or dividing
+class Operation(Enum):
+    ADDING = 1
+    SUBTRACTING = 2
+    MULTIPLYING = 3
+    DIVIDING = 4
+    NONE = 0
+
+# Flag to determine if the calculator is currently adding, subtracting, multiplying, or dividing
+current_operation = Operation.NONE
 
 
 def main():
@@ -10,9 +28,11 @@ def main():
 def close_window():
     window.destroy()
 
-#region Button functions
+#region Calculator functions
 '''
 This function is called when one of the calculator buttons are clicked.
+It delegates to the appropriate function based on the button clicked, and then
+updates the screen.
 
 @param button: The string value of the button that was clicked
 @return: None
@@ -23,13 +43,13 @@ def button_press(button):
         case "clear":
             clear_screen()
         case "/":
-            divide()
+            operation("/")
         case "*":
-            multiply()
+            operation("*")
         case "-":
-            subtract()
+            operation("-")
         case "+":
-            add()
+            operation("+")
         case "=":
             calculate()
         case ".":
@@ -41,42 +61,109 @@ def button_press(button):
                 raise ValueError(f"Invalid button: {button}")
     pass
 
+    # update_display()
+
 
 def clear_screen():
+    global display_value, current_operation
     print("Clearing screen")
+    display_value = "0"
+    update_display()
+    current_operation = Operation.NONE
     pass
 
-def divide():
-    print("Dividing")
-    pass
-
-def multiply():
-    print("Multiplying")
-    pass
-
-def subtract():
-    print("Subtracting")
-    pass
-
-def add():
-    print("Adding")
-    pass
+def operation(op_str):
+    global display_value, stored_value, current_operation
+    operations = {
+        "/": Operation.DIVIDING,
+        "*": Operation.MULTIPLYING,
+        "-": Operation.SUBTRACTING,
+        "+": Operation.ADDING
+    }
+    # If current_operation is NONE, then set the flag, store the display value, and return.
+    if current_operation == Operation.NONE:
+        if op_str in operations:
+            current_operation = operations[op_str]
+            store_display_value()
+        else:
+            raise ValueError(f"Invalid operation: {op_str}")
+        return
+    else:
+        # If current_operation is not NONE, then we need to calculate the result of the previous operation
+        # TODO: Implement the calculation
+        return
 
 def calculate():
     print("Calculating")
-    pass
+    # Based on the operation flag, call the appropriate helper function
+    # to calculate the result of the operation
+    global display_value, stored_value, current_operation
+
+    match current_operation:
+        case Operation.DIVIDING:
+            result = divide(float(stored_value), float(display_value))
+        case Operation.MULTIPLYING:
+            result = multiply(float(stored_value), float(display_value))
+        case Operation.SUBTRACTING:
+            result = subtract(float(stored_value), float(display_value))
+        case Operation.ADDING:
+            result = add(float(stored_value), float(display_value))
+        case Operation.NONE:
+            return
+        case _:
+            raise ValueError("Invalid operation", current_operation)
+    display_value = str(result)
+    update_display()
+    current_operation = Operation.NONE
 
 def decimal():
     print("Decimal")
-    pass
+    global display_value
+    if '.' not in display_value:
+        display_value += '.'
+    update_display()
 
 
 def add_to_screen(value):
+    global display_value
     print("Adding ", value, " to screen")
-    pass
+    if display_value == '0':
+        if value != '0':
+            display_value = value
+        else:
+            display_value += value
+    else:
+        display_value += value
+    update_display()
+
+def update_display():
+    screen.config(text=display_value)
+
+#endregion Calculator functions
+
+#region Helper functions
 
 
-#endregion button functions
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+def multiply(a, b):
+    return a * b
+
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a / b
+
+def store_display_value():
+    global display_value, stored_value
+    stored_value = display_value
+    display_value = "0"
+
+#endregion Helper functions
 
 
 
