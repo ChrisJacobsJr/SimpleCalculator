@@ -8,6 +8,9 @@ display_value = "0"
 # display_value is stored here when the user presses an operation button (+, -, *, /)
 stored_value = ""
 
+# flag to determine if the calculator has just produced an answer
+result_flag = False
+
 # Enum class to determine if the calculator is adding, subtracting, multiplying, or dividing
 class Operation(Enum):
     ADDING = 1
@@ -37,6 +40,7 @@ updates the screen.
 @param button: The string value of the button that was clicked
 @return: None
 '''
+    #region delegation
 def button_press(button):
     print("button ", button, " clicked")
     match button:
@@ -63,7 +67,9 @@ def button_press(button):
 
     # update_display()
 
+    #endregion delegation
 
+    #region screen manipulation
 def clear_screen():
     global display_value, current_operation
     print("Clearing screen")
@@ -89,15 +95,19 @@ def operation(op_str):
             raise ValueError(f"Invalid operation: {op_str}")
         return
     else:
-        # If current_operation is not NONE, then we need to calculate the result of the previous operation
-        # TODO: Implement the calculation
+        # If current_operation is not NONE, then do the following:
+        # Run the calculate function
+        # Run this function recursively with the new operation
+        calculate()
+        operation(op_str)
+        
         return
 
 def calculate():
     print("Calculating")
     # Based on the operation flag, call the appropriate helper function
     # to calculate the result of the operation
-    global display_value, stored_value, current_operation
+    global display_value, stored_value, current_operation, result_flag
 
     match current_operation:
         case Operation.DIVIDING:
@@ -112,9 +122,16 @@ def calculate():
             return
         case _:
             raise ValueError("Invalid operation", current_operation)
-    display_value = str(result)
+
+    # Check if the result is a whole number
+    if result.is_integer():
+        display_value = str(int(result))
+    else:
+        display_value = str(result)
+
     update_display()
     current_operation = Operation.NONE
+    result_flag = True
 
 def decimal():
     print("Decimal")
@@ -125,10 +142,14 @@ def decimal():
 
 
 def add_to_screen(value):
-    global display_value
+    global display_value, result_flag
     print("Adding ", value, " to screen")
+    if result_flag == True:
+        display_value = "0"
+        result_flag = False
+
     if display_value == '0':
-        if value != '0':
+        if value != '0' or current_operation != Operation.NONE:
             display_value = value
         else:
             display_value += value
@@ -138,6 +159,8 @@ def add_to_screen(value):
 
 def update_display():
     screen.config(text=display_value)
+
+    #endregion screen manipulation
 
 #endregion Calculator functions
 
