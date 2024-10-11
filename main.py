@@ -70,16 +70,37 @@ def button_press(button):
     #endregion delegation
 
     #region screen manipulation
+'''
+This function clears the screen and resets the calculator to its initial state.
+This entails setting clearing various flags / values and updating the screen.
+'''
 def clear_screen():
-    global display_value, current_operation
+    global display_value, current_operation, stored_value, result_flag
     print("Clearing screen")
     display_value = "0"
-    update_display()
+    stored_value = ""
+    result_flag = False
     current_operation = Operation.NONE
+    update_display()
     pass
 
+'''
+This function does two things, depending on whether the
+current_operation flag has a value other than NONE:
+
+1. If the current_operation flag is NONE, then set the flag
+   to the operation that was clicked, and store the display value.
+
+2. If the current_operation flag is not NONE, then calculate the
+   result of the current operation, and then recursively call this
+   function with the new operation.
+
+@param op_str: The string representation of the operation that was clicked
+@return: None
+@raises: ValueError if the operation string is not a valid operation
+'''
 def operation(op_str):
-    global display_value, stored_value, current_operation
+    global current_operation
     operations = {
         "/": Operation.DIVIDING,
         "*": Operation.MULTIPLYING,
@@ -93,70 +114,99 @@ def operation(op_str):
             store_display_value()
         else:
             raise ValueError(f"Invalid operation: {op_str}")
-        return
     else:
         # If current_operation is not NONE, then do the following:
         # Run the calculate function
         # Run this function recursively with the new operation
         calculate()
         operation(op_str)
-        
-        return
 
+'''
+This function calculates the result of the current operation,
+depending on what type of operation the global current_operation
+value is.
+
+Then, it updates the display and changes flags.
+
+@return: None
+@raises: ValueError if the current_operation is not a valid operation
+'''
 def calculate():
     print("Calculating")
     # Based on the operation flag, call the appropriate helper function
     # to calculate the result of the operation
     global display_value, stored_value, current_operation, result_flag
 
-    match current_operation:
-        case Operation.DIVIDING:
-            result = divide(float(stored_value), float(display_value))
-        case Operation.MULTIPLYING:
-            result = multiply(float(stored_value), float(display_value))
-        case Operation.SUBTRACTING:
-            result = subtract(float(stored_value), float(display_value))
-        case Operation.ADDING:
-            result = add(float(stored_value), float(display_value))
-        case Operation.NONE:
-            return
-        case _:
-            raise ValueError("Invalid operation", current_operation)
+    # Catch any errors that may occur during the calculation
+    # and show 'Error' on the screen. Two cases I can think of are
+    # dividing by zero, and trying to operate on the 'Error' string.
+    try:
+        match current_operation:
+            case Operation.DIVIDING:
+                result = divide(float(stored_value), float(display_value))
+            case Operation.MULTIPLYING:
+                result = multiply(float(stored_value), float(display_value))
+            case Operation.SUBTRACTING:
+                result = subtract(float(stored_value), float(display_value))
+            case Operation.ADDING:
+                result = add(float(stored_value), float(display_value))
+            case Operation.NONE:
+                return
+            case _:
+                raise ValueError("Invalid operation", current_operation)
+    except ValueError as e:
+        display_value = "Error"
+        print(f"Error: {e}")
+        update_display()
+        current_operation = Operation.NONE
+        result_flag = True
+        return
 
     # Check if the result is a whole number
     if result.is_integer():
         display_value = str(int(result))
     else:
-        display_value = str(result)
+        display_value = f"{result:.6f}".rstrip('0')
 
     update_display()
     current_operation = Operation.NONE
     result_flag = True
-
+'''
+Similar to add_to_screen (below), but adds a decimal point.
+'''
 def decimal():
+    global display_value, result_flag
     print("Decimal")
-    global display_value
+    if result_flag == True:
+        display_value = "0"
+        result_flag = False
     if '.' not in display_value:
         display_value += '.'
     update_display()
 
-
+'''
+This function adds a value to the screen, while making checks to
+ensure that the screen is displaying the correct value. The
+intention is for the program to behave similarly to how a
+calculator would.
+'''
 def add_to_screen(value):
     global display_value, result_flag
     print("Adding ", value, " to screen")
     if result_flag == True:
-        display_value = "0"
+        display_value = ""
         result_flag = False
 
     if display_value == '0':
         if value != '0' or current_operation != Operation.NONE:
             display_value = value
-        else:
-            display_value += value
     else:
         display_value += value
     update_display()
 
+'''
+screen is the tkinter Label widget that displays the calculator's value.
+'''
 def update_display():
     screen.config(text=display_value)
 
@@ -217,6 +267,26 @@ buttons_frame = tk.Frame(window)
 buttons_frame.pack(pady=10, padx=10)
 buttons_frame.configure(bg="#707070") # Set the color to matte light grey
 
+    #region keyboard Support
+
+# Define the key-to-button mapping
+key_mapping = {
+    "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "0": "0",
+    "plus": "+", "minus": "-", "asterisk": "*", "slash": "/", "=": "=", "Return": "=", "Delete": "clear", "period": "."
+}
+
+def key_press(event):
+    key = event.keysym
+    if key in key_mapping:
+        button_text = key_mapping[key]
+        button_press(button_text)
+
+# Bind key events to the handler function
+window.bind("<Key>", key_press)
+
+    #endregion keyboard Support
+
+
 # Create the buttons
 ## Create a list of buttons for a 4x5 grid. # is a placeholder for an empty space
 buttons = [
@@ -251,6 +321,7 @@ for i, button_text in enumerate(buttons):
 '''
 End GUI creation code
 '''
+
 
 if __name__ == "__main__":
     main()
